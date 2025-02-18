@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bookmark Manager</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    
+    <div class="input-container">
+      <h1>Bookmark Manager</h1>
+      <input type="text" id="title" placeholder="Enter Bookmark Title" />
+      <input type="url" id="url" placeholder="Enter Bookmark URL" />
+      <button onclick="addBookmark()">Add Bookmark</button>
+    </div>
+
+    <h2>Saved Bookmarks</h2>
+    <ul id="bookmarkList"></ul>
+
+    <script>
+      const API_URL = "http://localhost:3000/bookmarks";
+
+      // Fetch and display bookmarks
+      async function fetchBookmarks() {
+        const response = await fetch(API_URL);
+        const bookmarks = await response.json();
+        const bookmarkList = document.getElementById("bookmarkList");
+        bookmarkList.innerHTML = "";
+
+        bookmarks.forEach((bookmark) => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+            <a href="${bookmark.url}" target="_blank">${bookmark.title}</a>
+            <button class="delete-btn" onclick="deleteBookmark(${bookmark.id})">Delete</button>
+        `;
+          bookmarkList.appendChild(li);
+        });
+      }
+
+      // Add a new bookmark
+      async function addBookmark() {
+        const title = document.getElementById("title").value;
+        const url = document.getElementById("url").value;
+
+        if (!title || !url) {
+          alert("Please enter both title and URL");
+          return;
+        }
+
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, url }),
+        });
+
+        document.getElementById("title").value = "";
+        document.getElementById("url").value = "";
+
+        fetchBookmarks(); // Refresh the list
+      }
+
+      // Delete a bookmark
+      async function deleteBookmark(id) {
+        await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+        fetchBookmarks(); // Refresh the list
+      }
+
+      // Load bookmarks on page load
+      fetchBookmarks();
+    </script>
+  </body>
+</html>
